@@ -12,11 +12,21 @@ double cameraAngle;
 int drawgrid;
 int drawaxes;
 double angle;
+double shiftingAmount;
+double xAmount;
+double yAmount;
+double zAmount;
 
 struct point
 {
 	double x,y,z;
 };
+
+struct point pos;
+struct point u;
+struct point l;
+struct point r;
+
 
 
 void drawAxes()
@@ -25,12 +35,13 @@ void drawAxes()
 	{
 		glColor3f(1.0, 1.0, 1.0);
 		glBegin(GL_LINES);{
+		    glColor3f(1.0, 0, 0);
 			glVertex3f( 100,0,0);
 			glVertex3f(-100,0,0);
-
+            glColor3f(0, 1.0, 0);
 			glVertex3f(0,-100,0);
 			glVertex3f(0, 100,0);
-
+            glColor3f(0, 0, 1.0);
 			glVertex3f(0,0, 100);
 			glVertex3f(0,0,-100);
 		}glEnd();
@@ -169,37 +180,41 @@ void drawSphere(double radius,int slices,int stacks)
 
 void drawSS()
 {
-    glColor3f(1,0,0);
-    drawSquare(20);
+//    glColor3f(1,0,0);
+//    drawSquare(20);
+//
+//    glRotatef(angle,0,0,1);
+//    glTranslatef(110,0,0);
+//    glRotatef(2*angle,0,0,1);
+//    glColor3f(0,1,0);
+//    drawSquare(15);
+//
+//    glPushMatrix();
+//    {
+//        glRotatef(angle,0,0,1);
+//        glTranslatef(60,0,0);
+//        glRotatef(2*angle,0,0,1);
+//        glColor3f(0,0,1);
+//        drawSquare(10);
+//    }
+//    glPopMatrix();
+//
+//    glRotatef(3*angle,0,0,1);
+//    glTranslatef(40,0,0);
+//    glRotatef(4*angle,0,0,1);
+//    glColor3f(1,1,0);
+//    drawSquare(5);
 
-    glRotatef(angle,0,0,1);
-    glTranslatef(110,0,0);
-    glRotatef(2*angle,0,0,1);
-    glColor3f(0,1,0);
-    drawSquare(15);
 
-    glPushMatrix();
-    {
-        glRotatef(angle,0,0,1);
-        glTranslatef(60,0,0);
-        glRotatef(2*angle,0,0,1);
-        glColor3f(0,0,1);
-        drawSquare(10);
-    }
-    glPopMatrix();
-
-    glRotatef(3*angle,0,0,1);
-    glTranslatef(40,0,0);
-    glRotatef(4*angle,0,0,1);
-    glColor3f(1,1,0);
-    drawSquare(5);
+//    glColor3f(1,0,0);
+//    drawSphere(100,50,50);
 }
 
 void keyboardListener(unsigned char key, int x,int y){
 	switch(key){
 
 		case '1':
-			drawgrid=1-drawgrid;
+//			drawgrid=1-drawgrid;
 			break;
 
 		default:
@@ -211,22 +226,28 @@ void keyboardListener(unsigned char key, int x,int y){
 void specialKeyListener(int key, int x,int y){
 	switch(key){
 		case GLUT_KEY_DOWN:		//down arrow key
-			cameraHeight -= 3.0;
+//			cameraHeight -= 3.0;
+            zAmount += shiftingAmount;
 			break;
 		case GLUT_KEY_UP:		// up arrow key
-			cameraHeight += 3.0;
+//			cameraHeight += 3.0;
+            zAmount -= shiftingAmount;
 			break;
 
 		case GLUT_KEY_RIGHT:
-			cameraAngle += 0.03;
+//			cameraAngle += 0.03;
+            xAmount += shiftingAmount;
 			break;
 		case GLUT_KEY_LEFT:
-			cameraAngle -= 0.03;
+//			cameraAngle -= 0.03;
+            xAmount -= shiftingAmount;
 			break;
 
 		case GLUT_KEY_PAGE_UP:
+		    yAmount += shiftingAmount;
 			break;
 		case GLUT_KEY_PAGE_DOWN:
+		    yAmount -= shiftingAmount;
 			break;
 
 		case GLUT_KEY_INSERT:
@@ -289,7 +310,8 @@ void display(){
 
 	//gluLookAt(100,100,100,	0,0,0,	0,0,1);
 	//gluLookAt(200*cos(cameraAngle), 200*sin(cameraAngle), cameraHeight,		0,0,0,		0,0,1);
-	gluLookAt(0,0,200,	0,0,0,	0,1,0);
+//	gluLookAt(0,0,200,	0,0,0,	0,1,0);
+	gluLookAt(pos.x+xAmount,pos.y+yAmount,pos.z+zAmount,	xAmount,yAmount,zAmount,	0,1,0);
 
 
 	//again select MODEL-VIEW
@@ -302,7 +324,7 @@ void display(){
 	//add objects
 
 	drawAxes();
-	drawGrid();
+//	drawGrid();
 
     //glColor3f(1,0,0);
     //drawSquare(10);
@@ -324,18 +346,29 @@ void display(){
 
 
 void animate(){
-	angle+=0.5;
+//	angle+=0.5;
 	//codes for any changes in Models, Camera
 	glutPostRedisplay();
 }
 
 void init(){
 	//codes for initialization
-	drawgrid=0;
-	drawaxes=1;
-	cameraHeight=150.0;
-	cameraAngle=1.0;
-	angle=0;
+//	drawgrid=0;
+//	drawaxes=1;
+//	cameraHeight=150.0;
+//	cameraAngle=1.0;
+//	angle=0;
+    u = {0,0,1};
+    r = {-(1/sqrt(2)),(1/sqrt(2)),0.0};
+    l = {-(1/sqrt(2)),-(1/sqrt(2)),0.0};
+    pos = {0,0,100};
+    drawaxes = 1;
+    shiftingAmount = 5;
+    xAmount = 0;
+    yAmount = 0;
+    zAmount = 0;
+
+
 
 	//clear the screen
 	glClearColor(0,0,0,0);
