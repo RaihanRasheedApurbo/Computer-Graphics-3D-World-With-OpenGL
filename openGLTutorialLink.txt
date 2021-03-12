@@ -1,0 +1,5 @@
+how to install openGL and assignment description in Bangla:
+https://drive.google.com/file/d/1le7y9j43_5wKOh90fj2KV5KyBNkNh_B_/view
+
+how to install openGL walkthrough guideline using codeblocks:
+http://www.sci.brooklyn.cuny.edu/~goetz/codeblocks/glut/

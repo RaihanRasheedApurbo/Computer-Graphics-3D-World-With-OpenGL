@@ -1,0 +1,13 @@
+# depslib dependency file v1.0
+1615526698 source:c:\users\sherrinford\desktop\computer-graphics-3d-world-with-opengl\opengl_codeblocks\main.cpp
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<windows.h>
+	<glut.h>
+
+1615525129 c:\users\sherrinford\desktop\computer-graphics-3d-world-with-opengl\opengl_codeblocks\opengl\include\glut.h
+	<windows.h>
+	<GL/gl.h>
+	<GL/glu.h>
+
