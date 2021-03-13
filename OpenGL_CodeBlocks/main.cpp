@@ -1,10 +1,10 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>
-
+#include <iostream>
 #include <windows.h>
 #include <glut.h>
-
+using namespace std;
 #define pi (2*acos(0.0))
 
 double cameraHeight;
@@ -16,6 +16,7 @@ double shiftingAmount;
 double xAmount;
 double yAmount;
 double zAmount;
+double rotationAmount;
 
 struct point
 {
@@ -27,7 +28,103 @@ struct point u;
 struct point l;
 struct point r;
 
+struct point vectorSum(struct point p1,struct point p2)
+{
+    struct point ans;
+    ans.x = p1.x+p2.x;
+    ans.y = p1.y+p2.y;
+    ans.z = p1.z+p2.z;
+    return ans;
 
+}
+
+struct point negateVector(struct point p1)
+{
+    struct point ans;
+    ans.x = -p1.x;
+    ans.y = -p1.y;
+    ans.z = -p1.z;
+    return ans;
+
+}
+
+struct point rotateVector(struct point p1, struct point p2, double angle)
+{
+    struct point ans;
+
+    ans.x = p1.x * cos(angle) + p2.x * sin(angle);
+    ans.y = p1.y * cos(angle) + p2.y * sin(angle);
+    ans.z = p1.z * cos(angle) + p2.z * sin(angle);
+
+    double magnitude = sqrt(ans.x*ans.x+ans.y*ans.y+ans.z*ans.z);
+    ans.x /= magnitude;
+    ans.y /= magnitude;
+    ans.z /= magnitude;
+
+    return ans;
+
+
+}
+
+void printPoint(struct point p)
+{
+
+    cout<<p.x<<" "<<p.y<<" "<<p.z<<endl;
+}
+
+void counterClockRotateOFLookVectorINYAxis()
+{
+    struct point perpendicular;
+    // i  j  k
+    // l1 l2 l3
+    // u1 u2 u3
+    // = i*(-l3) - j(0) + k(l1)
+    perpendicular.x = l.y*u.z - l.z*u.y;
+    perpendicular.y = -(l.x*u.z-l.z*u.x);
+    perpendicular.z = l.x*u.y-l.y*u.x;
+    printPoint(l);
+    l.x = l.x * cos(rotationAmount) + perpendicular.x * sin(rotationAmount);
+    l.y = l.y * cos(rotationAmount) + perpendicular.y * sin(rotationAmount);
+    l.z = l.z * cos(rotationAmount) + perpendicular.z * sin(rotationAmount);
+
+    printPoint(l);
+
+    double magnitude = sqrt(l.x*l.x+l.y*l.y+l.z*l.z);
+    l.x /= magnitude;
+    l.y /= magnitude;
+    l.z /= magnitude;
+
+    printPoint(l);
+    cout<<endl;
+}
+
+void clockRotateOFLookVectorINYAxis()
+{
+    struct point perpendicular;
+    // i  j  k
+    // l1 l2 l3
+    // 0  1  0
+    // = i*(-l3) - j(0) + k(l1)
+    perpendicular.x = -(l.y*u.z - l.z*u.y);
+    perpendicular.y = (l.x*u.z-l.z*u.x);
+    perpendicular.z = -(l.x*u.y-l.y*u.x);
+
+    printPoint(l);
+
+    l.x = l.x * cos(rotationAmount) + perpendicular.x * sin(rotationAmount);
+    l.y = l.y * cos(rotationAmount) + perpendicular.y * sin(rotationAmount);
+    l.z = l.z * cos(rotationAmount) + perpendicular.z * sin(rotationAmount);
+
+    printPoint(l);
+
+    double magnitude = sqrt(l.x*l.x+l.y*l.y+l.z*l.z);
+    l.x /= magnitude;
+    l.y /= magnitude;
+    l.z /= magnitude;
+
+    printPoint(l);
+    cout<<endl;
+}
 
 void drawAxes()
 {
@@ -36,14 +133,14 @@ void drawAxes()
 		glColor3f(1.0, 1.0, 1.0);
 		glBegin(GL_LINES);{
 		    glColor3f(1.0, 0, 0);
-			glVertex3f( 100,0,0);
-			glVertex3f(-100,0,0);
+			glVertex3f( 1000,0,0);
+			glVertex3f(-1000,0,0);
             glColor3f(0, 1.0, 0);
-			glVertex3f(0,-100,0);
-			glVertex3f(0, 100,0);
+			glVertex3f(0,-1000,0);
+			glVertex3f(0, 1000,0);
             glColor3f(0, 0, 1.0);
-			glVertex3f(0,0, 100);
-			glVertex3f(0,0,-100);
+			glVertex3f(0,0, 1000);
+			glVertex3f(0,0,-1000);
 		}glEnd();
 	}
 }
@@ -211,11 +308,48 @@ void drawSS()
 }
 
 void keyboardListener(unsigned char key, int x,int y){
+    struct point prevLookVector = l;
+    struct point prevUpVector = u;
+//    struct point prevRightVector = r;
 	switch(key){
 
 		case '1':
 //			drawgrid=1-drawgrid;
+
+            l = rotateVector(l,negateVector(r),rotationAmount);
+            r = rotateVector(r,prevLookVector,rotationAmount);
 			break;
+
+        case '2':
+//			drawgrid=1-drawgrid;
+            l = rotateVector(l,r,rotationAmount);
+            r = rotateVector(r,negateVector(prevLookVector),rotationAmount);
+			break;
+
+        case '3':
+//			drawgrid=1-drawgrid;
+            l = rotateVector(l,u,rotationAmount);
+            u = rotateVector(u,negateVector(prevLookVector),rotationAmount);
+			break;
+
+        case '4':
+//			drawgrid=1-drawgrid;
+            l = rotateVector(l,negateVector(u),rotationAmount);
+            u = rotateVector(u,prevLookVector,rotationAmount);
+			break;
+
+
+        case '5':
+//			drawgrid=1-drawgrid;
+            u = rotateVector(u,negateVector(r),rotationAmount);
+            r = rotateVector(r,prevUpVector,rotationAmount);
+			break;
+
+        case '6':
+//			drawgrid=1-drawgrid;
+            u = rotateVector(u,r,rotationAmount);
+            r = rotateVector(r,negateVector(prevUpVector),rotationAmount);
+
 
 		default:
 			break;
@@ -227,27 +361,28 @@ void specialKeyListener(int key, int x,int y){
 	switch(key){
 		case GLUT_KEY_DOWN:		//down arrow key
 //			cameraHeight -= 3.0;
-            zAmount += shiftingAmount;
+
+            pos = vectorSum(pos,negateVector(l));
 			break;
 		case GLUT_KEY_UP:		// up arrow key
 //			cameraHeight += 3.0;
-            zAmount -= shiftingAmount;
+            pos = vectorSum(pos,l);
 			break;
 
 		case GLUT_KEY_RIGHT:
 //			cameraAngle += 0.03;
-            xAmount += shiftingAmount;
+            pos = vectorSum(pos,r);
 			break;
 		case GLUT_KEY_LEFT:
 //			cameraAngle -= 0.03;
-            xAmount -= shiftingAmount;
+            pos = vectorSum(pos,negateVector(r));
 			break;
 
 		case GLUT_KEY_PAGE_UP:
-		    yAmount += shiftingAmount;
+		    pos = vectorSum(pos,u);
 			break;
 		case GLUT_KEY_PAGE_DOWN:
-		    yAmount -= shiftingAmount;
+            pos = vectorSum(pos,negateVector(u));
 			break;
 
 		case GLUT_KEY_INSERT:
@@ -311,7 +446,7 @@ void display(){
 	//gluLookAt(100,100,100,	0,0,0,	0,0,1);
 	//gluLookAt(200*cos(cameraAngle), 200*sin(cameraAngle), cameraHeight,		0,0,0,		0,0,1);
 //	gluLookAt(0,0,200,	0,0,0,	0,1,0);
-	gluLookAt(pos.x+xAmount,pos.y+yAmount,pos.z+zAmount,	xAmount,yAmount,zAmount,	0,1,0);
+	gluLookAt(pos.x,pos.y,pos.z,	pos.x+l.x,pos.y+l.y,pos.z+l.z,	u.x,u.y,u.z);
 
 
 	//again select MODEL-VIEW
@@ -358,12 +493,17 @@ void init(){
 //	cameraHeight=150.0;
 //	cameraAngle=1.0;
 //	angle=0;
-    u = {0,0,1};
-    r = {-(1/sqrt(2)),(1/sqrt(2)),0.0};
-    l = {-(1/sqrt(2)),-(1/sqrt(2)),0.0};
+    u = {0,1,0};
+    r = {1,0,0};
+    l = {0,0,-1};
+
+
+//    printPoint(l);
+//    printf("%d %d %d",1,1,2);
     pos = {0,0,100};
     drawaxes = 1;
     shiftingAmount = 5;
+    rotationAmount = (pi/18);
     xAmount = 0;
     yAmount = 0;
     zAmount = 0;
