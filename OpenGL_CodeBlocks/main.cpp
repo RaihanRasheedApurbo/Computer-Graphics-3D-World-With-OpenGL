@@ -4,6 +4,7 @@
 #include <iostream>
 #include <windows.h>
 #include <glut.h>
+#include<vector>
 using namespace std;
 #define pi (2*acos(0.0))
 
@@ -11,12 +12,19 @@ double cameraHeight;
 double cameraAngle;
 int drawgrid;
 int drawaxes;
+int secondaryAxes;
 double angle;
 double shiftingAmount;
 double xAmount;
 double yAmount;
 double zAmount;
 double rotationAmount;
+bool firstTime = true;
+double angleQW;
+double angleER;
+double angleAS;
+double angleDF;
+
 
 struct point
 {
@@ -70,6 +78,57 @@ void printPoint(struct point p)
 {
 
     cout<<p.x<<" "<<p.y<<" "<<p.z<<endl;
+}
+
+double getAngle(struct point p)
+{
+    double angle,x,y;
+    x = p.x;
+    y = p.y;
+    if(x>0 && y>0) // first quad
+    {
+        angle = atan(y/x) * 180 / pi;
+
+    }
+    else if(x<0 && y>0) // first quad
+    {
+        angle =180 -  atan(y/-x) * 180 / pi;
+
+    }
+    else if(x<0 && y<0) // first quad
+    {
+        angle =180 +  atan(y/x) * 180 / pi;
+
+    }
+    else if(x>0 && y<0) // first quad
+    {
+        angle =360 -  atan(-y/x) * 180 / pi;
+
+    }
+    else if(x==0) // first quad
+    {
+        if(y>=0)
+        {
+            angle = 90;
+        }
+        else
+        {
+            angle = 270;
+        }
+
+    }
+    else
+    {
+        if(x>=0)
+        {
+            angle = 0;
+        }
+        else
+        {
+            angle = 180;
+        }
+    }
+    return angle;
 }
 
 void counterClockRotateOFLookVectorINYAxis()
@@ -184,15 +243,57 @@ void drawAxes()
 		glBegin(GL_LINES);{
 		    glColor3f(1.0, 0, 0);
 			glVertex3f( 1000,0,0);
+			glVertex3f( 0,0,0);
+			glColor3f(0.25, 0, 0);
+			glVertex3f( 0,0,0);
 			glVertex3f(-1000,0,0);
-            glColor3f(0, 1.0, 0);
+            glColor3f(0, 0.25, 0);
 			glVertex3f(0,-1000,0);
+			glVertex3f( 0,0,0);
+			glColor3f(0, 1, 0);
+			glVertex3f( 0,0,0);
 			glVertex3f(0, 1000,0);
+
             glColor3f(0, 0, 1.0);
 			glVertex3f(0,0, 1000);
+			glVertex3f( 0,0,0);
+			glColor3f(0, 0.5, 0.5);
+			glVertex3f( 0,0,0);
 			glVertex3f(0,0,-1000);
 		}glEnd();
 	}
+}
+
+void drawSecondaryAxes()
+{
+    if(secondaryAxes==1)
+    {
+        glColor3f(1.0, 1.0, 1.0);
+		glBegin(GL_LINES);{
+		    glColor3f(1.0, 0, 0);
+			glVertex3f( 1000,0,0);
+			glVertex3f( 0,0,0);
+			glColor3f(0.25, 0, 0);
+			glVertex3f( 0,0,0);
+			glVertex3f(-1000,0,0);
+            glColor3f(0, 0.25, 0);
+			glVertex3f(0,-1000,0);
+			glVertex3f( 0,0,0);
+			glColor3f(0, 1, 0);
+			glVertex3f( 0,0,0);
+			glVertex3f(0, 1000,0);
+
+            glColor3f(0, 0, 1.0);
+			glVertex3f(0,0, 1000);
+			glVertex3f( 0,0,0);
+			glColor3f(0, 0.5, 0.5);
+			glVertex3f( 0,0,0);
+			glVertex3f(0,0,-1000);
+		}glEnd();
+
+    }
+
+
 }
 
 
@@ -253,6 +354,127 @@ void drawCircle(double radius,int segments)
         }
         glEnd();
     }
+}
+
+void drawQuarterCircleOnThirdQuad(double radius,int segments,vector<struct point>& pointArr)
+{
+    int i;
+    struct point points[100];
+    glColor3f(0.7,0.7,0.7);
+    //generate points
+    for(i=0;i<=segments;i++)
+    {
+        points[i].x=-radius*cos(((double)i/(double)segments)*2*pi/4);
+        points[i].y=-radius*sin(((double)i/(double)segments)*2*pi/4);
+        pointArr.push_back(points[i]);
+    }
+    //draw segments using generated points
+
+    for(i=0;i<segments;i++)
+    {
+        glBegin(GL_LINES);
+        {
+			glVertex3f(points[i].x,points[i].y,0);
+			glVertex3f(points[i+1].x,points[i+1].y,0);
+        }
+        glEnd();
+    }
+
+}
+
+void drawCanonMouth(double radius,int segments)
+{
+    int i;
+    struct point points[100];
+    glColor3f(0.7,0.7,0.7);
+    //generate points
+    for(i=0;i<=segments;i++)
+    {
+        points[i].x=radius*cos(((double)i/(double)segments)*2*pi);
+        points[i].y=radius*sin(((double)i/(double)segments)*2*pi);
+    }
+    //draw segments using generated points
+    vector<vector<struct point>> allPoints;
+    for(i=0;i<segments;i++)
+    {
+//        glBegin(GL_LINES);
+//        {
+//			glVertex3f(points[i].x,points[i].y,0);
+//			glVertex3f(points[i+1].x,points[i+1].y,0);
+//
+//        }
+//        glEnd();
+        double angle = getAngle(points[i]);
+        vector<struct point> t;
+        glPushMatrix();
+        glRotatef(angle,0,0,1);
+        glTranslatef(2*radius,0,0);
+        glRotatef(90,1,0,0);
+        drawQuarterCircleOnThirdQuad(radius,segments,t);
+        glPopMatrix();
+        allPoints.push_back(t);
+
+        if(firstTime)
+        {
+            for(int j=0;j<t.size();j++)
+            {
+                cout<<t[j].x<<","<<t[j].y<<","<<" ";
+            }
+            cout<<endl;
+        }
+
+
+    }
+    firstTime = false;
+}
+
+void drawCanonMouth(double radius,int slices,int stacks,double height)
+{
+    struct point points[100][100];
+	int i,j;
+	double h,r;
+	//generate points
+	for(i=0;i<=stacks;i++)
+	{
+		h=height/stacks*i;
+		r=radius+h*h/4;
+		for(j=0;j<=slices;j++)
+		{
+			points[i][j].x=r*cos(((double)j/(double)slices)*2*pi);
+			points[i][j].y=r*sin(((double)j/(double)slices)*2*pi);
+			points[i][j].z=h;
+		}
+	}
+	//draw quads using generated points
+
+	for(i=0;i<stacks;i++)
+	{
+//        glColor3f((double)i/(double)stacks,(double)i/(double)stacks,(double)i/(double)stacks);
+		for(j=0;j<slices;j++)
+		{
+		    if(j%2==0)
+            {
+                glColor3f(1,1,1);
+            }
+            else
+            {
+
+                glColor3f(0,0,0);
+            }
+			glBegin(GL_QUADS);{
+			    //upper hemisphere
+				glVertex3f(points[i][j].x,points[i][j].y,points[i][j].z);
+				glVertex3f(points[i][j+1].x,points[i][j+1].y,points[i][j+1].z);
+				glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,points[i+1][j+1].z);
+				glVertex3f(points[i+1][j].x,points[i+1][j].y,points[i+1][j].z);
+                //lower hemisphere
+//                glVertex3f(points[i][j].x,points[i][j].y,-points[i][j].z);
+//				glVertex3f(points[i][j+1].x,points[i][j+1].y,-points[i][j+1].z);
+//				glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,-points[i+1][j+1].z);
+//				glVertex3f(points[i+1][j].x,points[i+1][j].y,-points[i+1][j].z);
+			}glEnd();
+		}
+	}
 }
 
 void drawCone(double radius,double height,int segments)
@@ -386,38 +608,59 @@ void drawHalfSphere(double radius,int slices,int stacks)
 }
 
 
+void drawHalfSphere2(double radius,int slices,int stacks)
+{
+	struct point points[100][100];
+	int i,j;
+	double h,r;
+	//generate points
+	for(i=0;i<=stacks;i++)
+	{
+		h=radius*sin(((double)i/(double)stacks)*(pi/2));
+		r=radius*cos(((double)i/(double)stacks)*(pi/2));
+		for(j=0;j<=slices;j++)
+		{
+			points[i][j].x=r*cos(((double)j/(double)slices)*2*pi);
+			points[i][j].y=r*sin(((double)j/(double)slices)*2*pi);
+			points[i][j].z=-h;
+		}
+	}
+	//draw quads using generated points
+
+	for(i=0;i<stacks;i++)
+	{
+//        glColor3f((double)i/(double)stacks,(double)i/(double)stacks,(double)i/(double)stacks);
+		for(j=0;j<slices;j++)
+		{
+		    if(j%2==0)
+            {
+                glColor3f(1,1,1);
+            }
+            else
+            {
+
+                glColor3f(0,0,0);
+            }
+			glBegin(GL_QUADS);{
+			    //upper hemisphere
+
+				glVertex3f(points[i][j].x,points[i][j].y,points[i][j].z);
+				glVertex3f(points[i][j+1].x,points[i][j+1].y,points[i][j+1].z);
+				glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,points[i+1][j+1].z);
+				glVertex3f(points[i+1][j].x,points[i+1][j].y,points[i+1][j].z);
+                //lower hemisphere
+//                glVertex3f(points[i][j].x,points[i][j].y,-points[i][j].z);
+//				glVertex3f(points[i][j+1].x,points[i][j+1].y,-points[i][j+1].z);
+//				glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,-points[i+1][j+1].z);
+//				glVertex3f(points[i+1][j].x,points[i+1][j].y,-points[i+1][j].z);
+			}glEnd();
+		}
+	}
+}
+
 
 void drawSS()
 {
-//    glColor3f(1,0,0);
-//    drawSquare(20);
-//
-//    glRotatef(angle,0,0,1);
-//    glTranslatef(110,0,0);
-//    glRotatef(2*angle,0,0,1);
-//    glColor3f(0,1,0);
-//    drawSquare(15);
-//
-//    glPushMatrix();
-//    {
-//        glRotatef(angle,0,0,1);
-//        glTranslatef(60,0,0);
-//        glRotatef(2*angle,0,0,1);
-//        glColor3f(0,0,1);
-//        drawSquare(10);
-//    }
-//    glPopMatrix();
-//
-//    glRotatef(3*angle,0,0,1);
-//    glTranslatef(40,0,0);
-//    glRotatef(4*angle,0,0,1);
-//    glColor3f(1,1,0);
-//    drawSquare(5);
-
-
-//    glColor3f(1,0,0);
-//    drawSphere(100,50,50);
-//    glPushMatrix();
 
     double sphereRadius = 40;
     double halfSphereRadius = 20;
@@ -426,30 +669,57 @@ void drawSS()
     glPushMatrix();
 
     glRotatef(90,0,1,0);
-    drawSphere(sphereRadius,slices,slices);
+    glRotatef(angleQW,0,1,0);
 
-//    glPopMatrix();
-//
-//    glPushMatrix();
+    drawHalfSphere2(sphereRadius,slices,stacks);
+    glRotatef(angleER,1,0,0);
+    drawHalfSphere(sphereRadius,slices,stacks);
+
+
+
     glRotatef(-90,0,1,0);
-    glTranslatef(sphereRadius+halfSphereRadius,0,0);
+    glTranslatef(sphereRadius,0,0);
+    glRotatef(angleAS,0,0,-1);
+    glRotatef(angleDF,-1,0,0);
+    glTranslatef(halfSphereRadius,0,0);
     glRotatef(-90,0,1,0);
+
     drawHalfSphere(halfSphereRadius,slices,slices);
-//    glPopMatrix();
-//    glPushMatrix();
+
+
     double cylinderHeight = 100;
-//    glPushMatrix();
+
     glTranslatef(0,0,-cylinderHeight);
-//    glRotatef(90,0,1,0);
-//    glRotatef(90,0,1,0);
+
     drawCylinder(halfSphereRadius,cylinderHeight,slices,slices);
-//    glPopMatrix();
-    drawAxes();
+
+    glTranslatef(0,0,-cylinderHeight);
+
+    glRotatef(180,0,1,0);
+
+
+
+
+    double canonMouthHeight = 5;
+    drawCanonMouth(halfSphereRadius,slices,stacks,canonMouthHeight);
+
+
+    drawSecondaryAxes();
+
+
+
+
+
+
+
+
+
 }
 
 void keyboardListener(unsigned char key, int x,int y){
     struct point prevLookVector = l;
     struct point prevUpVector = u;
+//    cout<<key<<endl;
 //    struct point prevRightVector = r;
 	switch(key){
 
@@ -489,7 +759,74 @@ void keyboardListener(unsigned char key, int x,int y){
 //			drawgrid=1-drawgrid;
             u = rotateVector(u,r,rotationAmount);
             r = rotateVector(r,negateVector(prevUpVector),rotationAmount);
+            break;
 
+        case 'x':
+            secondaryAxes = 1-secondaryAxes;
+            break;
+
+        case 'q':
+            if(angleQW+5<=45)
+            {
+                angleQW += 5;
+            }
+
+            break;
+
+        case 'a':
+            if(angleAS-5>=-45)
+            {
+                angleAS -= 5;
+            }
+
+            break;
+
+        case 's':
+            if(angleAS+5<=45)
+            {
+                angleAS += 5;
+            }
+
+            break;
+
+        case 'd':
+            if(angleDF-5>=-45)
+            {
+                angleDF -= 5;
+            }
+
+            break;
+        case 'f':
+            if(angleDF+5<=45)
+            {
+                angleDF += 5;
+            }
+
+            break;
+
+        case 'w':
+            if(angleQW-5>=-45)
+            {
+                angleQW -= 5;
+            }
+
+            break;
+
+        case 'e':
+            if(angleER+5<=45)
+            {
+                angleER += 5;
+            }
+
+            break;
+
+        case 'r':
+            if(angleER-5>=-45)
+            {
+                angleER -= 5;
+            }
+
+            break;
 
 		default:
 			break;
@@ -542,9 +879,9 @@ void specialKeyListener(int key, int x,int y){
 void mouseListener(int button, int state, int x, int y){	//x, y is the x-y of the screen (2D)
 	switch(button){
 		case GLUT_LEFT_BUTTON:
-//			if(state == GLUT_DOWN){		// 2 times?? in ONE click? -- solution is checking DOWN or UP
-//				drawaxes=1-drawaxes;
-//			}
+			if(state == GLUT_DOWN){		// 2 times?? in ONE click? -- solution is checking DOWN or UP
+				drawaxes=1-drawaxes;
+			}
 			break;
 
 		case GLUT_RIGHT_BUTTON:
@@ -641,13 +978,17 @@ void init(){
 //    printPoint(l);
 //    printf("%d %d %d",1,1,2);
     pos = {0,0,100};
-    drawaxes = 1;
+    drawaxes = 0;
     shiftingAmount = 5;
     rotationAmount = (pi/18);
     xAmount = 0;
     yAmount = 0;
     zAmount = 0;
-
+    secondaryAxes = 1;
+    angleQW = 0;
+    angleER = 0;
+    angleAS = 0;
+    angleDF = 0;
 
 
 	//clear the screen
