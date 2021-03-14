@@ -8,22 +8,25 @@
 using namespace std;
 #define pi (2*acos(0.0))
 
-double cameraHeight;
-double cameraAngle;
+// double cameraHeight;
+// double cameraAngle;
 int drawgrid;
 int drawaxes;
 int secondaryAxes;
 double angle;
-double shiftingAmount;
-double xAmount;
-double yAmount;
-double zAmount;
+// double shiftingAmount;
+// double xAmount;
+// double yAmount;
+// double zAmount;
 double rotationAmount;
-bool firstTime = true;
+// bool firstTime = true;
 double angleQW;
 double angleER;
 double angleAS;
 double angleDF;
+double gunRotationAmount;
+double gunRotationAmountINRedian;
+
 
 
 struct point
@@ -35,6 +38,9 @@ struct point pos;
 struct point u;
 struct point l;
 struct point r;
+struct point u1;
+struct point l1;
+struct point r1;
 
 struct point vectorSum(struct point p1,struct point p2)
 {
@@ -414,18 +420,18 @@ void drawCanonMouth(double radius,int segments)
         glPopMatrix();
         allPoints.push_back(t);
 
-        if(firstTime)
-        {
-            for(int j=0;j<t.size();j++)
-            {
-                cout<<t[j].x<<","<<t[j].y<<","<<" ";
-            }
-            cout<<endl;
-        }
+        // if(firstTime)
+        // {
+        //     for(int j=0;j<t.size();j++)
+        //     {
+        //         cout<<t[j].x<<","<<t[j].y<<","<<" ";
+        //     }
+        //     cout<<endl;
+        // }
 
 
     }
-    firstTime = false;
+    // firstTime = false;
 }
 
 void drawCanonMouth(double radius,int slices,int stacks,double height)
@@ -666,7 +672,19 @@ void drawSS()
     double halfSphereRadius = 20;
     double slices = 50;
     double stacks = 50;
+
+
     glPushMatrix();
+//    glTranslatef(500,0,0);
+//    glRotatef(90,0,1,0);
+//    glColor3f(1,1,0);
+//    drawSquare(100);
+//    glRotatef(-90,0,1,0);
+//    glTranslatef(-500,0,0);
+
+
+
+
 
     glRotatef(90,0,1,0);
     glRotatef(angleQW,0,1,0);
@@ -676,11 +694,11 @@ void drawSS()
     drawHalfSphere(sphereRadius,slices,stacks);
 
 
-
     glRotatef(-90,0,1,0);
     glTranslatef(sphereRadius,0,0);
     glRotatef(angleAS,0,0,-1);
     glRotatef(angleDF,-1,0,0);
+//    drawSecondaryAxes();
     glTranslatef(halfSphereRadius,0,0);
     glRotatef(-90,0,1,0);
 
@@ -702,14 +720,42 @@ void drawSS()
 
     double canonMouthHeight = 5;
     drawCanonMouth(halfSphereRadius,slices,stacks,canonMouthHeight);
+//    drawSecondaryAxes();
 
 
-    drawSecondaryAxes();
+    glPopMatrix();
+
+
+    int squareDistance = 500;
+    int squareLength = 300;
+    glTranslatef(squareDistance,0,0);
+    glRotatef(90,0,1,0);
+    glColor3f(0,1,0);
+    drawSquare(squareLength);
+//    drawSecondaryAxes();
+    glRotatef(-90,0,1,0);
+    glTranslatef(-squareDistance,0,0);
 
 
 
+    glPopMatrix();
 
-
+//    glColor3f(1,1,1);
+//    glBegin(GL_LINES);
+//    {
+//        glVertex3f(0,0,-200);
+//        glVertex3f(0+l1.x*50,0+l1.y*50,-200+l1.z*50);
+//    }
+//    glEnd();
+    struct point p2 = {sphereRadius,0,0};
+    int scallingFactor = squareDistance;
+    glColor3f(1,0,0);
+    glBegin(GL_LINES);
+    {
+        glVertex3f(p2.x,p2.y,p2.z);
+        glVertex3f(p2.x+l1.x*scallingFactor,p2.y+l1.y*scallingFactor,p2.z+l1.z*scallingFactor);
+    }
+    glEnd();
 
 
 
@@ -719,6 +765,8 @@ void drawSS()
 void keyboardListener(unsigned char key, int x,int y){
     struct point prevLookVector = l;
     struct point prevUpVector = u;
+    struct point prevLook1Vector = l1;
+    struct point prevUp1Vector = u1;
 //    cout<<key<<endl;
 //    struct point prevRightVector = r;
 	switch(key){
@@ -766,64 +814,82 @@ void keyboardListener(unsigned char key, int x,int y){
             break;
 
         case 'q':
-            if(angleQW+5<=45)
+            if(angleQW+gunRotationAmount<=45)
             {
-                angleQW += 5;
+                angleQW += gunRotationAmount;
+                l1 = rotateVector(l1,negateVector(r1),gunRotationAmountINRedian);
+                r1 = rotateVector(r1,prevLook1Vector,gunRotationAmountINRedian);
+            }
+
+
+
+            break;
+
+        case 'w':
+            if(angleQW-gunRotationAmount>=-45)
+            {
+                angleQW -= gunRotationAmount;
+                l1 = rotateVector(l1,r1,gunRotationAmountINRedian);
+                r1 = rotateVector(r1,negateVector(prevLook1Vector),gunRotationAmountINRedian);
+            }
+
+
+            break;
+
+        case 'e':
+            if(angleER+gunRotationAmount<=45)
+            {
+                angleER += gunRotationAmount;
+                l1 = rotateVector(l1,negateVector(u1),gunRotationAmountINRedian);
+                u1 = rotateVector(u1,prevLook1Vector,gunRotationAmountINRedian);
+            }
+
+
+
+            break;
+
+        case 'r':
+            if(angleER-gunRotationAmount>=-45)
+            {
+                angleER -= gunRotationAmount;
+                l1 = rotateVector(l1,u1,gunRotationAmountINRedian);
+                u1 = rotateVector(u1,negateVector(prevLook1Vector),gunRotationAmountINRedian);
+
             }
 
             break;
 
         case 'a':
-            if(angleAS-5>=-45)
+            if(angleAS-gunRotationAmount>=-45)
             {
-                angleAS -= 5;
+                angleAS -= gunRotationAmount;
+                l1 = rotateVector(l1,u1,gunRotationAmountINRedian);
+                u1 = rotateVector(u1,negateVector(prevLook1Vector),gunRotationAmountINRedian);
             }
 
             break;
 
         case 's':
-            if(angleAS+5<=45)
+            if(angleAS+gunRotationAmount<=45)
             {
-                angleAS += 5;
+                angleAS += gunRotationAmount;
+                l1 = rotateVector(l1,negateVector(u1),gunRotationAmountINRedian);
+                u1 = rotateVector(u1,prevLook1Vector,gunRotationAmountINRedian);
             }
 
             break;
 
         case 'd':
-            if(angleDF-5>=-45)
+            if(angleDF-gunRotationAmount>=-45)
             {
-                angleDF -= 5;
+                angleDF -= gunRotationAmount;
             }
 
             break;
         case 'f':
-            if(angleDF+5<=45)
+            if(angleDF+gunRotationAmount<=45)
             {
-                angleDF += 5;
-            }
-
-            break;
-
-        case 'w':
-            if(angleQW-5>=-45)
-            {
-                angleQW -= 5;
-            }
-
-            break;
-
-        case 'e':
-            if(angleER+5<=45)
-            {
-                angleER += 5;
-            }
-
-            break;
-
-        case 'r':
-            if(angleER-5>=-45)
-            {
-                angleER -= 5;
+                angleDF += gunRotationAmount;
             }
 
             break;
@@ -880,11 +946,23 @@ void mouseListener(int button, int state, int x, int y){	//x, y is the x-y of th
 	switch(button){
 		case GLUT_LEFT_BUTTON:
 			if(state == GLUT_DOWN){		// 2 times?? in ONE click? -- solution is checking DOWN or UP
-				drawaxes=1-drawaxes;
+				struct point p2 = {40,0,0};
+				double t = (500-p2.x)/l1.x;
+				double y = p2.y + t * l1.y;
+				double z = p2.z + t * l1.z;
+				cout<<y<<" "<<z<<endl;
+				if(y<=150 && y>=-150 && z<=150 && z>=-150)
+                {
+                    cout<<"hit"<<endl;
+                }
 			}
 			break;
 
 		case GLUT_RIGHT_BUTTON:
+		    if(state == GLUT_DOWN){		// 2 times?? in ONE click? -- solution is checking DOWN or UP
+				drawaxes=1-drawaxes;
+			}
+
 			//........
 			break;
 
@@ -974,21 +1052,26 @@ void init(){
     r = {1,0,0};
     l = {0,0,-1};
 
+    u1 = {0,1,0};
+    l1 = {1,0,0};
+    r1 = {0,0,1};
 
 //    printPoint(l);
 //    printf("%d %d %d",1,1,2);
-    pos = {0,0,100};
+    pos = {400,0,0};
     drawaxes = 0;
-    shiftingAmount = 5;
-    rotationAmount = (pi/18);
-    xAmount = 0;
-    yAmount = 0;
-    zAmount = 0;
+    // shiftingAmount = 5;
+    rotationAmount = (pi/18); // 10 degree written in redian
+    // xAmount = 0;
+    // yAmount = 0;
+    // zAmount = 0;
     secondaryAxes = 1;
     angleQW = 0;
     angleER = 0;
     angleAS = 0;
     angleDF = 0;
+    gunRotationAmount = 5; // 5 degree
+    gunRotationAmountINRedian = (pi/18) /2 ; // 5 degree in redian  0.08715
 
 
 	//clear the screen
@@ -1004,7 +1087,7 @@ void init(){
 	glLoadIdentity();
 
 	//give PERSPECTIVE parameters
-	gluPerspective(80,	1,	1,	1000.0);
+	gluPerspective(80,	1,	1,	2000.0);
 	//field of view in the Y (vertically)
 	//aspect ratio that determines the field of view in the X direction (horizontally)
 	//near distance
