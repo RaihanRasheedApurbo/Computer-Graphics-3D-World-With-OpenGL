@@ -1,10 +1,12 @@
 # depslib dependency file v1.0
-1615526698 source:c:\users\sherrinford\desktop\computer-graphics-3d-world-with-opengl\opengl_codeblocks\main.cpp
+1615791955 source:c:\users\sherrinford\desktop\computer-graphics-3d-world-with-opengl\opengl_codeblocks\main.cpp
 	<stdio.h>
 	<stdlib.h>
 	<math.h>
+	<iostream>
 	<windows.h>
 	<glut.h>
+	<vector>
 
 1615525129 c:\users\sherrinford\desktop\computer-graphics-3d-world-with-opengl\opengl_codeblocks\opengl\include\glut.h
 	<windows.h>
