@@ -26,7 +26,7 @@ double angleAS;
 double angleDF;
 double gunRotationAmount;
 double gunRotationAmountINRedian;
-
+vector<struct point> gunShots;
 
 
 struct point
@@ -747,15 +747,29 @@ void drawSS()
 //        glVertex3f(0+l1.x*50,0+l1.y*50,-200+l1.z*50);
 //    }
 //    glEnd();
-    struct point p2 = {sphereRadius,0,0};
-    int scallingFactor = squareDistance;
-    glColor3f(1,0,0);
-    glBegin(GL_LINES);
+    for(int i=0;i<gunShots.size();i++)
     {
-        glVertex3f(p2.x,p2.y,p2.z);
-        glVertex3f(p2.x+l1.x*scallingFactor,p2.y+l1.y*scallingFactor,p2.z+l1.z*scallingFactor);
+        struct point p2 = gunShots[i];
+        glColor3f(1,0,0);
+        int a = 5;
+        glBegin(GL_QUADS);
+        {
+            glVertex3f(p2.x,p2.y+a,p2.z+a);
+            glVertex3f(p2.x,p2.y+a,p2.z-a);
+            glVertex3f(p2.x,p2.y-a,p2.z-a);
+            glVertex3f(p2.x,p2.y-a,p2.z+a);
+        }
+        glEnd();
     }
-    glEnd();
+//    struct point p2 = {sphereRadius,0,0};
+//    int scallingFactor = squareDistance-sphereRadius;
+//    glColor3f(1,0,0);
+//    glBegin(GL_LINES);
+//    {
+//        glVertex3f(p2.x,p2.y,p2.z);
+//        glVertex3f(p2.x+l1.x*scallingFactor,p2.y+l1.y*scallingFactor,p2.z+l1.z*scallingFactor);
+//    }
+//    glEnd();
 
 
 
@@ -945,16 +959,21 @@ void specialKeyListener(int key, int x,int y){
 void mouseListener(int button, int state, int x, int y){	//x, y is the x-y of the screen (2D)
 	switch(button){
 		case GLUT_LEFT_BUTTON:
-			if(state == GLUT_DOWN){		// 2 times?? in ONE click? -- solution is checking DOWN or UP
+
+			if(state == GLUT_DOWN){	// 2 times?? in ONE click? -- solution is checking DOWN or UP
+				double x = 500;
 				struct point p2 = {40,0,0};
-				double t = (500-p2.x)/l1.x;
+				double t = (x-p2.x)/l1.x;
 				double y = p2.y + t * l1.y;
 				double z = p2.z + t * l1.z;
 				cout<<y<<" "<<z<<endl;
-				if(y<=150 && y>=-150 && z<=150 && z>=-150)
+				if(y<=300 && y>=-300 && z<=300 && z>=-300)
                 {
                     cout<<"hit"<<endl;
+                    gunShots.push_back({x,y,z});
                 }
+
+
 			}
 			break;
 
@@ -1058,7 +1077,7 @@ void init(){
 
 //    printPoint(l);
 //    printf("%d %d %d",1,1,2);
-    pos = {400,0,0};
+    pos = {-100,100,0};
     drawaxes = 0;
     // shiftingAmount = 5;
     rotationAmount = (pi/18); // 10 degree written in redian
