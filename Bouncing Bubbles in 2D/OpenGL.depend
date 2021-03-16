@@ -1,0 +1,15 @@
+# depslib dependency file v1.0
+1615902431 source:c:\users\sherrinford\desktop\computer-graphics-3d-world-with-opengl\bouncing bubbles in 2d\main.cpp
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<windows.h>
+	<glut.h>
+	<ctime>
+	<bits/stdc++.h>
+
+1615869179 c:\users\sherrinford\desktop\computer-graphics-3d-world-with-opengl\bouncing bubbles in 2d\opengl\include\glut.h
+	<windows.h>
+	<GL/gl.h>
+	<GL/glu.h>
+
