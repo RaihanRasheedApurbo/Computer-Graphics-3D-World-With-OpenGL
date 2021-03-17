@@ -35,8 +35,19 @@ double halfSquareLength;
 vector<bool> insideCircle;
 double innerCircleRedius;
 int lastReflectionTime;
+bool pause;
+double speed;
+double speedIncrement;
 
-
+struct point reflect(struct point perpendicular, struct point directionVector)
+{
+    struct point newDirectionVector;
+    double dotProduct = perpendicular.x*directionVector.x+perpendicular.y*directionVector.y+perpendicular.z*directionVector.z;
+    newDirectionVector.x = directionVector.x - 2*(dotProduct)*perpendicular.x;
+    newDirectionVector.y = directionVector.y - 2*(dotProduct)*perpendicular.y;
+    newDirectionVector.z = directionVector.z - 2*(dotProduct)*perpendicular.z;
+    return newDirectionVector;
+}
 
 struct point normalizeTOUnitVector(struct point p)
 {
@@ -117,7 +128,7 @@ void drawCircle(double radius,int segments, struct point p)
 {
     int i;
     struct point points[100];
-    glColor3f(0.7,0.7,0.7);
+//    glColor3f(0.7,0.7,0.7);
     //generate points
     double centerX = p.x;
     double centerY = p.y;
@@ -261,6 +272,7 @@ void drawSS()
 //    drawSquare(5);
 
     glPushMatrix();
+    glColor3f(0,1,0);
     glBegin(GL_LINES);
     {
         glVertex3f(-halfSquareLength,halfSquareLength,zCoord);
@@ -276,10 +288,11 @@ void drawSS()
         glVertex3f(halfSquareLength,halfSquareLength,zCoord);
     }
     glEnd();
-
+    glColor3f(1,0,0);
     drawCircle(innerCircleRedius,90);
 
 //    drawCircle(10,10,{-100,-100});
+    glColor3f(1,1,1);
     for(int i=0;i<currentBubbles;i++)
     {
         drawCircle(bubbleRadius,20,bubbles[i]);
@@ -297,6 +310,17 @@ void keyboardListener(unsigned char key, int x,int y){
 			drawgrid=1-drawgrid;
 			break;
 
+        case 'p':
+            if(pause)
+            {
+                pause = false;
+            }
+            else
+            {
+                pause = true;
+            }
+            break;
+
 		default:
 			break;
 	}
@@ -306,17 +330,26 @@ void keyboardListener(unsigned char key, int x,int y){
 void specialKeyListener(int key, int x,int y){
 	switch(key){
 		case GLUT_KEY_DOWN:		//down arrow key
-			cameraHeight -= 3.0;
+//			cameraHeight -= 3.0;
+            if(speed>speedIncrement)
+            {
+                speed -= speedIncrement;
+            }
+
 			break;
 		case GLUT_KEY_UP:		// up arrow key
-			cameraHeight += 3.0;
+//			cameraHeight += 3.0;
+            if(speed<12*speedIncrement)
+            {
+                speed += speedIncrement;
+            }
 			break;
 
 		case GLUT_KEY_RIGHT:
-			cameraAngle += 0.03;
+//			cameraAngle += 0.03;
 			break;
 		case GLUT_KEY_LEFT:
-			cameraAngle -= 0.03;
+//			cameraAngle -= 0.03;
 			break;
 
 		case GLUT_KEY_PAGE_UP:
@@ -420,13 +453,17 @@ void display(){
 
 void animate(){
 //	angle+=0.05;
-    if(currentBubbles<1)
+    if(pause)
+    {
+        return;
+    }
+    if(currentBubbles<5)
     {
         int currentTime = time(0);
         if(currentTime-startingTime > bubbleAppearingInterval)
         {
             startingTime = currentTime;
-            cout<<currentTime<<endl;
+//            cout<<currentTime<<endl;
             currentBubbles += 1;
         }
     }
@@ -435,10 +472,10 @@ void animate(){
     {
         struct point p = bubbles[i];
         struct point directionVector = directionVectors[i];
-        int speed = 1;
-        p.x += directionVector.x/speed;
-        p.y += directionVector.y/speed;
-        p.z += directionVector.z/speed;
+
+        p.x += directionVector.x*speed;
+        p.y += directionVector.y*speed;
+        p.z += directionVector.z*speed;
         struct point newDirectionVector;
         struct point perpendicular;
         bool reflection = false;
@@ -452,34 +489,30 @@ void animate(){
             else if(p.x+bubbleRadius>halfSquareLength && directionVector.x > 0)
             {
 
-                perpendicular = {-1,0,0};
-                newDirectionVector.x = directionVector.x - 2*(directionVector.x*perpendicular.x)*perpendicular.x;
-                newDirectionVector.y = directionVector.y - 2*(directionVector.y*perpendicular.y)*perpendicular.y;
-                newDirectionVector.z = directionVector.z - 2*(directionVector.z*perpendicular.z)*perpendicular.z;
+                perpendicular = {1,0,0};
+                newDirectionVector = reflect(perpendicular,directionVector);
+                newDirectionVector = normalizeTOUnitVector(newDirectionVector);
                 reflection = true;
             }
             else if(p.x-bubbleRadius<(-halfSquareLength) && directionVector.x < 0)
             {
-                perpendicular = {1,0,0};
-                newDirectionVector.x = directionVector.x - 2*(directionVector.x*perpendicular.x)*perpendicular.x;
-                newDirectionVector.y = directionVector.y - 2*(directionVector.y*perpendicular.y)*perpendicular.y;
-                newDirectionVector.z = directionVector.z - 2*(directionVector.z*perpendicular.z)*perpendicular.z;
+                perpendicular = {-1,0,0};
+                newDirectionVector = reflect(perpendicular,directionVector);
+                newDirectionVector = normalizeTOUnitVector(newDirectionVector);
                 reflection = true;
             }
             else if(p.y+bubbleRadius>halfSquareLength && directionVector.y > 0)
             {
-                perpendicular = {0,-1,0};
-                newDirectionVector.x = directionVector.x - 2*(directionVector.x*perpendicular.x)*perpendicular.x;
-                newDirectionVector.y = directionVector.y - 2*(directionVector.y*perpendicular.y)*perpendicular.y;
-                newDirectionVector.z = directionVector.z - 2*(directionVector.z*perpendicular.z)*perpendicular.z;
+                perpendicular = {0,1,0};
+                newDirectionVector = reflect(perpendicular,directionVector);
+                newDirectionVector = normalizeTOUnitVector(newDirectionVector);
                 reflection = true;
             }
             else if(p.y-bubbleRadius<(-halfSquareLength) && directionVector.y < 0)
             {
-                perpendicular = {0,1,0};
-                newDirectionVector.x = directionVector.x - 2*(directionVector.x*perpendicular.x)*perpendicular.x;
-                newDirectionVector.y = directionVector.y - 2*(directionVector.y*perpendicular.y)*perpendicular.y;
-                newDirectionVector.z = directionVector.z - 2*(directionVector.z*perpendicular.z)*perpendicular.z;
+                perpendicular = {0,-1,0};
+                newDirectionVector = reflect(perpendicular,directionVector);
+                newDirectionVector = normalizeTOUnitVector(newDirectionVector);
                 reflection = true;
             }
         }
@@ -488,29 +521,20 @@ void animate(){
             double distanceFromOrigin = distance(p,{0,0,0});
             if(distanceFromOrigin>innerCircleRedius-bubbleRadius)
             {
-                cout<<distanceFromOrigin<<endl;
-                int currentTime = time(0);
-                if(true)
-                {
-                    lastReflectionTime = currentTime;
+
+
+//                    lastReflectionTime = currentTime;
                     perpendicular = {-p.x,-p.y,-p.z};
 
                     perpendicular = normalizeTOUnitVector(perpendicular);
-                    double dotProduct = perpendicular.x*directionVector.x+perpendicular.y*directionVector.y+perpendicular.z*directionVector.z;
-                    cout<<"dotProduct "<<dotProduct<<endl;
-                    if(dotProduct<-0)
-                    {
-                        printPoint(perpendicular);
-                        printPoint(directionVector);
-                        newDirectionVector.x = directionVector.x - 2*(directionVector.x*perpendicular.x)*perpendicular.x;
-                        newDirectionVector.y = directionVector.y - 2*(directionVector.y*perpendicular.y)*perpendicular.y;
-                        newDirectionVector.z = directionVector.z - 2*(directionVector.z*perpendicular.z)*perpendicular.z;
-                        newDirectionVector = normalizeTOUnitVector(newDirectionVector);
-                        printPoint(newDirectionVector);
-                        reflection = true;
-                    }
 
-                }
+
+                    newDirectionVector = reflect(perpendicular,directionVector);
+                    newDirectionVector = normalizeTOUnitVector(newDirectionVector);
+                    reflection = true;
+
+
+
 
             }
         }
@@ -543,8 +567,9 @@ void init(){
     halfSquareLength = 120;
     innerCircleRedius = 90;
     lastReflectionTime = time(0);
-
-
+    pause = false;
+    speed = 1;
+    speedIncrement = 0.25;
 
     for(int i=0;i<numberOfBubbles;i++)
     {
