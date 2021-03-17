@@ -38,6 +38,7 @@ int lastReflectionTime;
 bool pause;
 double speed;
 double speedIncrement;
+int maxSpeedMultiplier;
 
 struct point reflect(struct point perpendicular, struct point directionVector)
 {
@@ -292,7 +293,7 @@ void drawSS()
     drawCircle(innerCircleRedius,90);
 
 //    drawCircle(10,10,{-100,-100});
-    glColor3f(1,1,1);
+    glColor3f(1,0.5,0);
     for(int i=0;i<currentBubbles;i++)
     {
         drawCircle(bubbleRadius,20,bubbles[i]);
@@ -339,7 +340,7 @@ void specialKeyListener(int key, int x,int y){
 			break;
 		case GLUT_KEY_UP:		// up arrow key
 //			cameraHeight += 3.0;
-            if(speed<12*speedIncrement)
+            if(speed<maxSpeedMultiplier*speedIncrement)
             {
                 speed += speedIncrement;
             }
@@ -476,45 +477,82 @@ void animate(){
         p.x += directionVector.x*speed;
         p.y += directionVector.y*speed;
         p.z += directionVector.z*speed;
+
+        bubbles[i] = p;
+
+    }
+
+
+    for(int i=0;i<currentBubbles;i++)
+    {
+        struct point p = bubbles[i];
+        struct point directionVector = directionVectors[i];
         struct point newDirectionVector;
         struct point perpendicular;
-        bool reflection = false;
         if(insideCircle[i]==false)
         {
             double distanceFromOrigin = distance(p,{0,0,0});
             if(distanceFromOrigin<innerCircleRedius-bubbleRadius)
             {
                 insideCircle[i] = true;
+                for(int j=0;j<currentBubbles;j++)
+                {
+                    if(insideCircle[j] == false || j == i)
+                    {
+                        continue;
+                    }
+                    struct point q = bubbles[j];
+                    double distanceFromEachOther = distance(p,q);
+                    if(distanceFromEachOther<2*bubbleRadius)
+                    {
+
+
+        //                    lastReflectionTime = currentTime;
+                            insideCircle[i] = false;
+                            break;
+//                            directionVectors[i] = reflect(normalQP,directionVectors[i]);
+//                            directionVectors[i] = normalizeTOUnitVector(directionVectors[i]);
+//                            directionVectors[j] = reflect(normalPQ,directionVectors[j]);
+//                            directionVectors[j] = normalizeTOUnitVector(directionVectors[j]);
+//                            break;
+
+
+
+                    }
+                }
+
             }
             else if(p.x+bubbleRadius>halfSquareLength && directionVector.x > 0)
             {
 
-                perpendicular = {1,0,0};
-                newDirectionVector = reflect(perpendicular,directionVector);
-                newDirectionVector = normalizeTOUnitVector(newDirectionVector);
-                reflection = true;
-            }
-            else if(p.x-bubbleRadius<(-halfSquareLength) && directionVector.x < 0)
-            {
                 perpendicular = {-1,0,0};
                 newDirectionVector = reflect(perpendicular,directionVector);
                 newDirectionVector = normalizeTOUnitVector(newDirectionVector);
-                reflection = true;
+                directionVectors[i] = newDirectionVector;
             }
-            else if(p.y+bubbleRadius>halfSquareLength && directionVector.y > 0)
+            else if(p.x-bubbleRadius<(-halfSquareLength) && directionVector.x < 0)
             {
-                perpendicular = {0,1,0};
+                perpendicular = {1,0,0};
                 newDirectionVector = reflect(perpendicular,directionVector);
                 newDirectionVector = normalizeTOUnitVector(newDirectionVector);
-                reflection = true;
+                directionVectors[i] = newDirectionVector;
             }
-            else if(p.y-bubbleRadius<(-halfSquareLength) && directionVector.y < 0)
+            else if(p.y+bubbleRadius>halfSquareLength && directionVector.y > 0)
             {
                 perpendicular = {0,-1,0};
                 newDirectionVector = reflect(perpendicular,directionVector);
                 newDirectionVector = normalizeTOUnitVector(newDirectionVector);
-                reflection = true;
+                directionVectors[i] = newDirectionVector;
             }
+            else if(p.y-bubbleRadius<(-halfSquareLength) && directionVector.y < 0)
+            {
+                perpendicular = {0,1,0};
+                newDirectionVector = reflect(perpendicular,directionVector);
+                newDirectionVector = normalizeTOUnitVector(newDirectionVector);
+                directionVectors[i] = newDirectionVector;
+            }
+
+
         }
         else
         {
@@ -531,18 +569,61 @@ void animate(){
 
                     newDirectionVector = reflect(perpendicular,directionVector);
                     newDirectionVector = normalizeTOUnitVector(newDirectionVector);
-                    reflection = true;
+                    directionVectors[i] = newDirectionVector;
 
 
 
 
             }
+            else
+            {
+                for(int j=i+1;j<currentBubbles;j++)
+                {
+                    if(insideCircle[j] == false)
+                    {
+                        continue;
+                    }
+                    struct point q = bubbles[j];
+                    double distanceFromEachOther = distance(p,q);
+                    if(distanceFromEachOther<2*bubbleRadius)
+                    {
+
+
+        //                    lastReflectionTime = currentTime;
+                            struct point normalPQ = {q.x-p.x,q.y-p.y,q.z-p.z};
+                            struct point normalQP = {p.x-q.x,p.y-q.y,p.z-q.z};
+
+
+                            normalPQ = normalizeTOUnitVector(normalPQ);
+                            normalQP = normalizeTOUnitVector(normalQP);
+
+                            struct point prevP = directionVectors[i];
+                            struct point prevQ = directionVectors[j];
+                            struct point relativeDirectionP = {prevP.x-prevQ.x,prevP.y-prevQ.y,prevP.z-prevQ.z};
+                            struct point relativeDirectionQ = {prevQ.x-prevP.x,prevQ.y-prevP.y,prevQ.z-prevP.z};
+
+                            directionVectors[i] = reflect(normalQP,relativeDirectionP);
+                            directionVectors[i] = normalizeTOUnitVector(directionVectors[i]);
+
+                            directionVectors[j] = reflect(normalPQ,relativeDirectionQ);
+                            directionVectors[j] = normalizeTOUnitVector(directionVectors[j]);
+                            break;
+//                            directionVectors[i] = reflect(normalQP,directionVectors[i]);
+//                            directionVectors[i] = normalizeTOUnitVector(directionVectors[i]);
+//                            directionVectors[j] = reflect(normalPQ,directionVectors[j]);
+//                            directionVectors[j] = normalizeTOUnitVector(directionVectors[j]);
+//                            break;
+
+
+
+                    }
+                }
+            }
+
+
+
         }
-        if(reflection)
-        {
-            directionVectors[i] = newDirectionVector;
-        }
-        bubbles[i] = p;
+
 
     }
     // r = d-2(d*n)n;
@@ -563,13 +644,14 @@ void init(){
     startingTime = time(0);
     srand(time(0));
     bubbleAppearingInterval = 5; // in seconds
-    bubbleRadius = 15;
+    bubbleRadius = 12;
     halfSquareLength = 120;
-    innerCircleRedius = 90;
+    innerCircleRedius = 80;
     lastReflectionTime = time(0);
     pause = false;
     speed = 1;
     speedIncrement = 0.25;
+    maxSpeedMultiplier = 4;
 
     for(int i=0;i<numberOfBubbles;i++)
     {
