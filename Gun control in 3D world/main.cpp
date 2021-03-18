@@ -38,7 +38,7 @@ double slices = 50;
 double stacks = 50;
 double cylinderHeight = 100;
 double canonMouthHeight = 5;
-int squareDistance = 500;
+int squareDistance = 600;
 int squareLength = 300;
 int bulletWidth = 5;
 
@@ -48,6 +48,13 @@ struct point
 	double x,y,z;
 };
 
+
+struct transformations
+{
+    vector<vector<int>> operations;
+};
+
+
 struct point pos;
 struct point u;
 struct point l;
@@ -55,6 +62,10 @@ struct point r;
 struct point u1;
 struct point l1;
 struct point r1;
+struct point u2;
+struct point l2;
+struct point r2;
+vector<transformations> bullets;
 
 struct point vectorSum(struct point p1,struct point p2)
 {
@@ -76,6 +87,15 @@ struct point negateVector(struct point p1)
 
 }
 
+struct point normalizeTOUnitVector(struct point p)
+{
+    double divisor = sqrt(p.x*p.x+p.y*p.y+p.z*p.z);
+    p.x /= divisor;
+    p.y /= divisor;
+    p.z /= divisor;
+    return p;
+}
+
 struct point rotateVector(struct point p1, struct point p2, double angle)
 {
     struct point ans;
@@ -89,7 +109,7 @@ struct point rotateVector(struct point p1, struct point p2, double angle)
     ans.y /= magnitude;
     ans.z /= magnitude;
 
-    return ans;
+    return normalizeTOUnitVector(ans);
 
 
 }
@@ -564,12 +584,8 @@ void drawSS()
 
 
     glPushMatrix();
-//    glTranslatef(500,0,0);
-//    glRotatef(90,0,1,0);
-//    glColor3f(1,1,0);
-//    drawSquare(100);
-//    glRotatef(-90,0,1,0);
-//    glTranslatef(-500,0,0);
+
+
 
 
 
@@ -609,10 +625,34 @@ void drawSS()
 
 
     drawCanonMouth(halfSphereRadius,slices,stacks,canonMouthHeight);
-//    drawSecondaryAxes();
+
 
 
     glPopMatrix();
+
+    // drawing bullets in system 2
+    glColor3f(1,0,0);
+    for(int i=0;i<bullets.size();i++)
+    {
+        glPushMatrix();
+        vector<vector<int>> &t = bullets[i].operations;
+        for(int j=0;j<t.size();j++)
+        {
+            vector<int> &r = t[j];
+            if(r.size()==4)
+            {
+                glRotatef(r[0],r[1],r[2],r[3]);
+            }
+            else if(r.size()==3)
+            {
+                glTranslatef(r[0],r[1],r[2]);
+            }
+        }
+
+        glTranslatef(0,0,-440);
+        drawSquare(5);
+        glPopMatrix();
+    }
 
 
 
@@ -620,13 +660,15 @@ void drawSS()
     glRotatef(90,0,1,0);
     glColor3f(0,1,0);
     drawSquare(squareLength);
-//    drawSecondaryAxes();
+
     glRotatef(-90,0,1,0);
     glTranslatef(-squareDistance,0,0);
 
 
 
     glPopMatrix();
+
+    //***************** drawing bullet system1 *************************
 
 //    glColor3f(1,1,1);
 //    glBegin(GL_LINES);
@@ -635,20 +677,21 @@ void drawSS()
 //        glVertex3f(0+l1.x*50,0+l1.y*50,-200+l1.z*50);
 //    }
 //    glEnd();
-    for(int i=0;i<gunShots.size();i++)
-    {
-        struct point p2 = gunShots[i];
-        glColor3f(1,0,0);
-
-        glBegin(GL_QUADS);
-        {
-            glVertex3f(p2.x,p2.y+bulletWidth,p2.z+bulletWidth);
-            glVertex3f(p2.x,p2.y+bulletWidth,p2.z-bulletWidth);
-            glVertex3f(p2.x,p2.y-bulletWidth,p2.z-bulletWidth);
-            glVertex3f(p2.x,p2.y-bulletWidth,p2.z+bulletWidth);
-        }
-        glEnd();
-    }
+//    for(int i=0;i<gunShots.size();i++)
+//    {
+//        struct point p2 = gunShots[i];
+//        glColor3f(1,0,0);
+//
+//        glBegin(GL_QUADS);
+//        {
+//            glVertex3f(p2.x,p2.y+bulletWidth,p2.z+bulletWidth);
+//            glVertex3f(p2.x,p2.y+bulletWidth,p2.z-bulletWidth);
+//            glVertex3f(p2.x,p2.y-bulletWidth,p2.z-bulletWidth);
+//            glVertex3f(p2.x,p2.y-bulletWidth,p2.z+bulletWidth);
+//        }
+//        glEnd();
+//    }
+////    struct point p2 = {sphereRadius*l2.x,sphereRadius*l2.y,sphereRadius*l2.z};
 //    struct point p2 = {sphereRadius,0,0};
 //    int scallingFactor = squareDistance-sphereRadius;
 //    glColor3f(1,0,0);
@@ -669,15 +712,19 @@ void keyboardListener(unsigned char key, int x,int y){
     struct point prevUpVector = u;
     struct point prevLook1Vector = l1;
     struct point prevUp1Vector = u1;
+    struct point prevLook2Vector = l2;
+    struct point prevUp2Vector = u2;
 //    cout<<key<<endl;
 //    struct point prevRightVector = r;
 	switch(key){
 
 		case '1':
 //			drawgrid=1-drawgrid;
-
+//            printPoint(l);
             l = rotateVector(l,negateVector(r),rotationAmount);
             r = rotateVector(r,prevLookVector,rotationAmount);
+//            printPoint(l);
+//            cout<<"hello"<<endl;
 			break;
 
         case '2':
@@ -721,6 +768,8 @@ void keyboardListener(unsigned char key, int x,int y){
                 angleQW += gunRotationAmount;
                 l1 = rotateVector(l1,negateVector(r1),gunRotationAmountINRedian);
                 r1 = rotateVector(r1,prevLook1Vector,gunRotationAmountINRedian);
+                l2 = rotateVector(l2,negateVector(r2),gunRotationAmountINRedian);
+                r2 = rotateVector(r2,prevLook2Vector,gunRotationAmountINRedian);
             }
 
 
@@ -733,6 +782,10 @@ void keyboardListener(unsigned char key, int x,int y){
                 angleQW -= gunRotationAmount;
                 l1 = rotateVector(l1,r1,gunRotationAmountINRedian);
                 r1 = rotateVector(r1,negateVector(prevLook1Vector),gunRotationAmountINRedian);
+                l2 = rotateVector(l2,r2,gunRotationAmountINRedian);
+                r2 = rotateVector(r2,negateVector(prevLook2Vector),gunRotationAmountINRedian);
+//                printPoint(l1);
+
             }
 
 
@@ -744,6 +797,8 @@ void keyboardListener(unsigned char key, int x,int y){
                 angleER -= gunRotationAmount;
                 l1 = rotateVector(l1,u1,gunRotationAmountINRedian);
                 u1 = rotateVector(u1,negateVector(prevLook1Vector),gunRotationAmountINRedian);
+                l2 = rotateVector(l2,u2,gunRotationAmountINRedian);
+                u2 = rotateVector(u2,negateVector(prevLook2Vector),gunRotationAmountINRedian);
             }
 
 
@@ -756,6 +811,8 @@ void keyboardListener(unsigned char key, int x,int y){
                 angleER += gunRotationAmount;
                 l1 = rotateVector(l1,negateVector(u1),gunRotationAmountINRedian);
                 u1 = rotateVector(u1,prevLook1Vector,gunRotationAmountINRedian);
+                l2 = rotateVector(l2,negateVector(u2),gunRotationAmountINRedian);
+                u2 = rotateVector(u2,prevLook2Vector,gunRotationAmountINRedian);
 
             }
 
@@ -854,11 +911,27 @@ void mouseListener(int button, int state, int x, int y){	//x, y is the x-y of th
 				double t = (x-p2.x)/l1.x;
 				double y = p2.y + t * l1.y;
 				double z = p2.z + t * l1.z;
-				cout<<y<<" "<<z<<endl;
+//				cout<<y<<" "<<z<<endl;
 				if(y<=squareLength && y>=-squareLength && z<=squareLength && z>=-squareLength)
                 {
 //                    cout<<"hit"<<endl;
-                    gunShots.push_back({x,y,z});
+                    gunShots.push_back({x,y,z});   // *****************for system 1
+//                    vector<vector<int>> operations;
+                    struct transformations t;
+                    t.operations.push_back({90,0,1,0});
+                    t.operations.push_back({angleQW,0,1,0});
+                    t.operations.push_back({angleER,1,0,0});
+                    t.operations.push_back({-90,0,1,0});
+                    t.operations.push_back({sphereRadius,0,0});
+                    t.operations.push_back({angleAS,0,0,-1});
+                    t.operations.push_back({angleDF,-1,0,0});
+                    t.operations.push_back({halfSphereRadius,0,0});
+                    t.operations.push_back({-90,0,1,0});
+                    t.operations.push_back({0,0,-cylinderHeight});
+
+
+                    bullets.push_back(t); // ********************for system 2
+
                 }
 
 
@@ -956,12 +1029,17 @@ void init(){
 //	cameraAngle=1.0;
 //	angle=0;
     u = {0,1,0};
-    r = {1,0,0};
+    r = {0,0,1};
     l = {1,0,0};
 
     u1 = {0,1,0};
     l1 = {1,0,0};
     r1 = {0,0,1};
+
+
+    u2 = {0,1,0};
+    l2 = {1,0,0};
+    r2 = {0,0,1};
 
 //    printPoint(l);
 //    printf("%d %d %d",1,1,2);

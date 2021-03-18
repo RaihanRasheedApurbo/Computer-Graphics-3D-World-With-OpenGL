@@ -13,3 +13,17 @@
 	<GL/gl.h>
 	<GL/glu.h>
 
+1616039600 source:c:\users\sherrinford\desktop\computer-graphics-3d-world-with-opengl\gun control in 3d world\main.cpp
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<iostream>
+	<windows.h>
+	<glut.h>
+	<vector>
+
+1615525129 c:\users\sherrinford\desktop\computer-graphics-3d-world-with-opengl\gun control in 3d world\opengl\include\glut.h
+	<windows.h>
+	<GL/gl.h>
+	<GL/glu.h>
+
