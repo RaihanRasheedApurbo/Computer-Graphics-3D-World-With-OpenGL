@@ -50,6 +50,14 @@ struct point reflect(struct point perpendicular, struct point directionVector)
     return newDirectionVector;
 }
 
+double calculateDotProudct(struct point p1, struct point p2)
+{
+
+    return p1.x*p2.x+p1.y*p2.y+p1.z*p2.z;
+}
+
+
+
 struct point normalizeTOUnitVector(struct point p)
 {
     double divisor = sqrt(p.x*p.x+p.y*p.y+p.z*p.z);
@@ -458,7 +466,7 @@ void animate(){
     {
         return;
     }
-    if(currentBubbles<5)
+    if(currentBubbles<numberOfBubbles)
     {
         int currentTime = time(0);
         if(currentTime-startingTime > bubbleAppearingInterval)
@@ -557,19 +565,24 @@ void animate(){
         else
         {
             double distanceFromOrigin = distance(p,{0,0,0});
-            if(distanceFromOrigin>innerCircleRedius-bubbleRadius)
+
+            if(distanceFromOrigin>innerCircleRedius-bubbleRadius )
             {
 
 
 //                    lastReflectionTime = currentTime;
+
                     perpendicular = {-p.x,-p.y,-p.z};
+                    double dotProduct = calculateDotProudct(perpendicular,directionVector);
 
-                    perpendicular = normalizeTOUnitVector(perpendicular);
+                    if(dotProduct<0)
+                    {
+                        perpendicular = normalizeTOUnitVector(perpendicular);
+                        newDirectionVector = reflect(perpendicular,directionVector);
+                        newDirectionVector = normalizeTOUnitVector(newDirectionVector);
+                        directionVectors[i] = newDirectionVector;
 
-
-                    newDirectionVector = reflect(perpendicular,directionVector);
-                    newDirectionVector = normalizeTOUnitVector(newDirectionVector);
-                    directionVectors[i] = newDirectionVector;
+                    }
 
 
 
@@ -594,25 +607,43 @@ void animate(){
                             struct point normalQP = {p.x-q.x,p.y-q.y,p.z-q.z};
 
 
+
                             normalPQ = normalizeTOUnitVector(normalPQ);
                             normalQP = normalizeTOUnitVector(normalQP);
 
-                            struct point prevP = directionVectors[i];
-                            struct point prevQ = directionVectors[j];
-                            struct point relativeDirectionP = {prevP.x-prevQ.x,prevP.y-prevQ.y,prevP.z-prevQ.z};
-                            struct point relativeDirectionQ = {prevQ.x-prevP.x,prevQ.y-prevP.y,prevQ.z-prevP.z};
+//                            struct point prevP = directionVectors[i];
+//                            struct point prevQ = directionVectors[j];
+//                            struct point relativeDirectionP = {prevP.x-prevQ.x,prevP.y-prevQ.y,prevP.z-prevQ.z};
+//                            struct point relativeDirectionQ = {prevQ.x-prevP.x,prevQ.y-prevP.y,prevQ.z-prevP.z};
 
-                            directionVectors[i] = reflect(normalQP,relativeDirectionP);
-                            directionVectors[i] = normalizeTOUnitVector(directionVectors[i]);
-
-                            directionVectors[j] = reflect(normalPQ,relativeDirectionQ);
-                            directionVectors[j] = normalizeTOUnitVector(directionVectors[j]);
-                            break;
-//                            directionVectors[i] = reflect(normalQP,directionVectors[i]);
+//                            directionVectors[i] = reflect(normalQP,relativeDirectionP);
 //                            directionVectors[i] = normalizeTOUnitVector(directionVectors[i]);
-//                            directionVectors[j] = reflect(normalPQ,directionVectors[j]);
+//
+//                            directionVectors[j] = reflect(normalPQ,relativeDirectionQ);
 //                            directionVectors[j] = normalizeTOUnitVector(directionVectors[j]);
+
+
+
 //                            break;
+                            double dotProductP = calculateDotProudct(normalQP,directionVectors[i]);
+                            double dotProductQ = calculateDotProudct(normalPQ,directionVectors[j]);
+
+                            if(dotProductP<0 || dotProductQ<0)
+                            {
+                                if(dotProductP<0)
+                                {
+                                    directionVectors[i] = reflect(normalQP,directionVectors[i]);
+                                    directionVectors[i] = normalizeTOUnitVector(directionVectors[i]);
+                                }
+                                if(dotProductQ<0)
+                                {
+                                    directionVectors[j] = reflect(normalPQ,directionVectors[j]);
+                                    directionVectors[j] = normalizeTOUnitVector(directionVectors[j]);
+                                }
+
+
+                                break;
+                            }
 
 
 
@@ -651,7 +682,7 @@ void init(){
     pause = false;
     speed = 1;
     speedIncrement = 0.25;
-    maxSpeedMultiplier = 4;
+    maxSpeedMultiplier = 50;
 
     for(int i=0;i<numberOfBubbles;i++)
     {
